@@ -1,0 +1,38 @@
+{
+  "cells": [
+    {
+      "q": -1,
+      "r": 0,
+      "revealed": true,
+      "marked": false,
+      "clue": {
+        "number": 1,
+        "line": null
+      },
+      "screen_pos": null,
+      "s": null,
+      "inferred_mine": false,
+      "inferred_safe": false
+    },
+    {
+      "q": 0,
+      "r": 0,
+      "revealed": false,
+      "marked": false,
+      "clue": null,
+      "screen_pos": null,
+      "s": null,
+      "inferred_mine": false,
+      "inferred_safe": false
+    }
+  ],
+  "geometry": {
+    "coordinate_system": "axial",
+    "layout": "pointy"
+  },
+  "image_shape": null,
+  "metadata": {
+    "label": "tutorial_safe_flag",
+    "source": "manual_fixture"
+  }
+}
