@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import List
+from pathlib import Path
+from typing import List, Optional
 
 import cv2
 import numpy as np
@@ -10,11 +11,12 @@ import numpy as np
 from .state import Cell, Clue, GameState
 
 
-def parse_board(image: np.ndarray) -> GameState:
+def parse_board(image: np.ndarray, template_dir: Optional[Path] = None) -> GameState:
     """Parse a Hexcells board image into a structured ``GameState``.
 
     Args:
         image: A BGR or grayscale image of the active Hexcells board.
+        template_dir: Optional directory of templates to aid parsing.
 
     Returns:
         A ``GameState`` instance containing detected cells, clues, and metadata.
@@ -27,7 +29,11 @@ def parse_board(image: np.ndarray) -> GameState:
     # classify clues, and map them into axial coordinates.
     cells: List[Cell] = []
 
-    return GameState(cells=cells, image_shape=gray.shape)
+    metadata = {}
+    if template_dir is not None:
+        metadata["template_dir"] = str(template_dir)
+
+    return GameState(cells=cells, image_shape=gray.shape, metadata=metadata)
 
 
 def _extract_clue_from_cell(cell_image: np.ndarray) -> Clue | None:
