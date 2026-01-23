@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional
+from typing import Dict, List, Optional, Tuple
 from collections import deque
 from typing import Set
 from pyautogui import click, moveTo
@@ -66,6 +66,38 @@ def get_neighbors(x: int, y: int, width: int, height: int) -> List[Tuple[int, in
     return neighbors
 
 
+UNKNOWN = 0
+FLAGGED = 9
+
+
+def _is_number(cell: int) -> bool:
+    return 1 <= cell <= 8
+
+
+def _collect_constraints(board: Board) -> List[Tuple[Set[Tuple[int, int]], int]]:
+    height = len(board)
+    width = len(board[0]) if height > 0 else 0
+    constraints = []
+
+    for y in range(height):
+        for x in range(width):
+            cell = board[y][x]
+            if not _is_number(cell):
+                continue
+
+            neighbors = get_neighbors(x, y, width, height)
+            flagged = [(nx, ny) for (nx, ny) in neighbors if board[ny][nx] == FLAGGED]
+            unknown = [(nx, ny) for (nx, ny) in neighbors if board[ny][nx] == UNKNOWN]
+
+            remaining = cell - len(flagged)
+            if remaining < 0 or not unknown:
+                continue
+
+            constraints.append((set(unknown), remaining))
+
+    return constraints
+
+
 def find_next_move(board: Board) -> Optional[Action]:
     height = len(board)
     width = len(board[0]) if height > 0 else 0
@@ -73,63 +105,94 @@ def find_next_move(board: Board) -> Optional[Action]:
     for y in range(height):
         for x in range(width):
             cell = board[y][x]
-            if 1 <= cell <= 8:  # A revealed number
-                neighbors = get_neighbors(x, y, width, height)
-                flagged = [(nx, ny) for (nx, ny) in neighbors if board[ny][nx] == 9]
-                unknown = [(nx, ny) for (nx, ny) in neighbors if board[ny][nx] == 0]
+            if not _is_number(cell):
+                continue
 
-                # If number of flags == cell value -> all unknown are safe
-                if len(flagged) == cell and unknown:
-                    return ('left', unknown[0])
+            neighbors = get_neighbors(x, y, width, height)
+            flagged = [(nx, ny) for (nx, ny) in neighbors if board[ny][nx] == FLAGGED]
+            unknown = [(nx, ny) for (nx, ny) in neighbors if board[ny][nx] == UNKNOWN]
 
-                # If number of flags + unknown == cell value -> all unknown are mines
-                if len(flagged) + len(unknown) == cell and unknown:
-                    return ('right', unknown[0])
+            remaining = cell - len(flagged)
+
+            # If number of flags == cell value -> all unknown are safe
+            if remaining == 0 and unknown:
+                return ('left', unknown[0])
+
+            # If number of flags + unknown == cell value -> all unknown are mines
+            if remaining == len(unknown) and unknown:
+                return ('right', unknown[0])
 
     return None  # No safe move found
 
 
 def find_safe_tile_recursive(board: Board) -> Optional[Action]:
-    height = len(board)
-    width = len(board[0]) if height > 0 else 0
+    immediate_move = find_next_move(board)
+    if immediate_move:
+        return immediate_move
 
-    for y in range(height):
-        for x in range(width):
-            cell = board[y][x]
-            if not (1 <= cell <= 8):
+    constraints = _collect_constraints(board)
+
+    # Subset inference: if constraint A is subset of B, use the difference.
+    for i, (a_tiles, a_remaining) in enumerate(constraints):
+        for b_tiles, b_remaining in constraints[i + 1:]:
+            if not a_tiles or not b_tiles:
                 continue
 
-            neighbors = get_neighbors(x, y, width, height)
-            flagged = [(nx, ny) for (nx, ny) in neighbors if board[ny][nx] == 9]
-            unknown = [(nx, ny) for (nx, ny) in neighbors if board[ny][nx] == 0]
+            if a_tiles.issubset(b_tiles):
+                diff = b_tiles - a_tiles
+                if not diff:
+                    continue
+                if a_remaining == b_remaining:
+                    return ('left', sorted(diff)[0])
+                if b_remaining - a_remaining == len(diff):
+                    return ('right', sorted(diff)[0])
+            elif b_tiles.issubset(a_tiles):
+                diff = a_tiles - b_tiles
+                if not diff:
+                    continue
+                if a_remaining == b_remaining:
+                    return ('left', sorted(diff)[0])
+                if a_remaining - b_remaining == len(diff):
+                    return ('right', sorted(diff)[0])
 
-            # If we've flagged all mines, the rest must be safe
-            if len(flagged) == cell and unknown:
-                return ('left', unknown[0])
+    # No guaranteed moves: pick the lowest-risk unknown tile.
+    height = len(board)
+    width = len(board[0]) if height > 0 else 0
+    unknown_tiles = [
+        (x, y)
+        for y in range(height)
+        for x in range(width)
+        if board[y][x] == UNKNOWN
+    ]
+    if not unknown_tiles:
+        return None
 
-            # If remaining mines match unknowns, all unknowns must be mines
-            if len(unknown) + len(flagged) == cell:
-                return ('right', unknown[0])
+    tile_probabilities: Dict[Tuple[int, int], List[float]] = {
+        tile: [] for tile in unknown_tiles
+    }
+    for tiles, remaining in constraints:
+        if not tiles:
+            continue
+        probability = remaining / len(tiles)
+        for tile in tiles:
+            if tile in tile_probabilities:
+                tile_probabilities[tile].append(probability)
 
-            # Try chaining to a neighbor
-            for (ux, uy) in unknown:
-                # Find other numbers that see (ux, uy)
-                for (sx, sy) in get_neighbors(ux, uy, width, height):
-                    s_val = board[sy][sx]
-                    if not (1 <= s_val <= 8):
-                        continue
+    best_tile = None
+    best_score = None
+    for tile, probs in tile_probabilities.items():
+        if probs:
+            score = sum(probs) / len(probs)
+        else:
+            score = 1.0  # no info, assume worst
+        if best_score is None or score < best_score:
+            best_score = score
+            best_tile = tile
 
-                    s_neighbors = get_neighbors(sx, sy, width, height)
-                    s_flagged = [(nx, ny) for (nx, ny) in s_neighbors if board[ny][nx] == 9]
-                    s_unknown = [(nx, ny) for (nx, ny) in s_neighbors if board[ny][nx] == 0]
+    if best_tile is None:
+        return None
 
-                    if len(s_flagged) == s_val and (ux, uy) in s_unknown:
-                        return ('left', (ux, uy))
-
-                    if len(s_flagged) + len(s_unknown) == s_val and (ux, uy) in s_unknown:
-                        return ('right', (ux, uy))
-
-    return None
+    return ('left', best_tile)
 
 def check_tile(x,y,rl,board):
     x = floor(831 + 19 + x * 37.4583333333)
