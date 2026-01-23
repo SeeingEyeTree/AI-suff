@@ -7,11 +7,11 @@ import logging
 from typing import Any
 from uuid import uuid4
 
-from .actuator import apply_move
-from .capture import capture_screen, preprocess_image
-from .cli import configure_logging, parse_args
-from .parser import parse_board
-from .solver import find_safe_move
+from actuator import apply_move
+from capture import capture_screen, preprocess_image
+from cli import configure_logging, parse_args
+from parser import parse_board
+from solver import find_safe_move
 
 
 def _log_event(stage: str, frame_id: str, **fields: Any) -> None:

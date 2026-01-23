@@ -2,26 +2,27 @@
 
 from __future__ import annotations
 
-from .actuator import apply_move
+from actuator import apply_move
 from pathlib import Path
 from typing import Optional, Tuple
 
-from .capture import capture_screen, preprocess_image
-from .parser import parse_board
-from .solver import find_safe_move
-
+from capture import capture_screen, preprocess_image
+from parser import parse_board
+from solver import find_safe_move
+import cv2
 
 def run_once(
     *,
     capture_region: Optional[Tuple[int, int, int, int]] = None,
-    template_dir: Optional[Path] = None,
+    template_dir: Optional[Path] = 'C:/Users/malco/OneDrive/Documents/GitHub/AI-suff\templates',
     state_out: Optional[Path] = None,
     dry_run: bool = False,
 ) -> None:
     """Run one capture → parse → solve → act cycle."""
     image = capture_screen(region=capture_region)
     processed = preprocess_image(image)
-    state = parse_board(processed, template_dir=template_dir)
+    cv2.imshow('windo', processed)
+    state = parse_board(processed)
     if state_out is not None:
         state.save(state_out)
     move = find_safe_move(state)

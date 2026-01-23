@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from .state import GameState, Move
+from state import GameState, Move
 
 
 def find_safe_move(state: GameState) -> Optional[Move]:

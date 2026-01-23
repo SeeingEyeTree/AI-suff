@@ -9,8 +9,8 @@ from typing import Dict, List, Optional, Sequence, Tuple
 import cv2
 import numpy as np
 
-from .config import TemplateMatchingConfig
-from .state import Cell, Clue, GameState
+from config import TemplateMatchingConfig
+from state import Cell, Clue, GameState
 
 
 @dataclass(frozen=True)

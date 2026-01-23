@@ -6,7 +6,7 @@ from typing import Tuple
 
 import pyautogui
 
-from .state import Move
+from state import Move
 
 
 def apply_move(move: Move) -> None:
