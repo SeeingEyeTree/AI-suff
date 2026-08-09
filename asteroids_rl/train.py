@@ -7,10 +7,10 @@ import numpy as np
 import torch
 from torch import nn, optim
 
-from asteroids_rl.agent import DQNAgent, EpsilonScheduler
-from asteroids_rl.config import TrainingConfig
-from asteroids_rl.replay_buffer import ReplayBuffer, Transition
-from asteroids_rl.wrappers import TorchObsWrapper, make_env
+from agent import DQNAgent, EpsilonScheduler
+from config import TrainingConfig
+from replay_buffer import ReplayBuffer, Transition
+from wrappers import TorchObsWrapper, make_env
 
 
 def set_seed(seed: int) -> None:

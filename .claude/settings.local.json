@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import gymnasium; print\\(gymnasium.__version__\\)\")",
+      "Bash(python pendulum_render.py)",
+      "Bash(ping -n 4 127.0.0.1)",
+      "Bash(Start-Sleep -Seconds 5)",
+      "Bash(Get-Content \"C:\\\\Users\\\\malco\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-malco-OneDrive-Documents-GitHub-AI-suff\\\\6a10ac25-7158-494d-ab9e-5d1b8a9bbe0f\\\\tasks\\\\bvwkl2ucw.output\")",
+      "Bash(python -c \"import stable_baselines3; print\\(stable_baselines3.__version__\\)\")",
+      "Bash(python pendulum_ppo.py)",
+      "Bash(python pendulum_ppo_hybrid.py)",
+      "Bash(python mountain_car_render.py)",
+      "Bash(python mountain_car_ppo.py)"
+    ]
+  }
+}
