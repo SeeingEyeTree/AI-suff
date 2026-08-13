@@ -10,7 +10,9 @@
       "Bash(python pendulum_ppo.py)",
       "Bash(python pendulum_ppo_hybrid.py)",
       "Bash(python mountain_car_render.py)",
-      "Bash(python mountain_car_ppo.py)"
+      "Bash(python mountain_car_ppo.py)",
+      "Bash(python mountain_car_sac.py)",
+      "Bash(python -c \"from rich.live import Live; print\\('rich ok'\\)\")"
     ]
   }
 }
